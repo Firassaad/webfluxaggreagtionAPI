@@ -2,13 +2,22 @@ package com.frs.tnt.component;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 
-import com.frs.tnt.webClient.AggregationWebClient;
+import org.springframework.stereotype.Component;
+import org.springframework.web.reactive.function.server.ServerRequest;
+import org.springframework.web.reactive.function.server.ServerResponse;
+
 
 import reactor.core.publisher.Mono;
 
+@Component
 public class AggregationHandler {
+
+    public Mono<ServerResponse> handleAggregation(ServerRequest request) {
+        System.out.println("Handling aggregation request");
+        return ServerResponse.ok()
+                .bodyValue(Map.of("message", "hello world"));
+    }
 
     // public Mono<Map<String, Object>> getAggregationData(Set<String> pricing, Set<String> track, Set<String> shipments) {
     //     // Implement logic to fetch data from each external API using AggregationWebClient
