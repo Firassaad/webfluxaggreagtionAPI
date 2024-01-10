@@ -1,0 +1,52 @@
+server:
+  port: 8081
+
+management.endpoints.web.exposure.include: "*"
+management.endpoint.health.show-details: always
+
+resilience4j:
+  ratelimiter:
+    configs:
+      default:
+        limitForPeriod: 1  # Set a low limit as the purpose is to queue requests
+        limitRefreshPeriod: 1s
+        timeoutDuration: 1s
+        registerHealthIndicator: true
+        eventConsumerBufferSize: 100
+    instances:
+      shipmentsServiceRateLimiter:
+        # baseConfig: default  # Use the default configuration for queueing
+        limitForPeriod: 5  # Set the actual limit for processing bulk requests
+        limitRefreshPeriod: 1s
+        timeoutDuration: 5s
+        registerHealthIndicator: true
+      pricingServiceRateLimiter:
+        baseConfig: default
+        limitForPeriod: 5
+        limitRefreshPeriod: 1s
+        timeoutDuration: 5s
+        registerHealthIndicator: true
+      trackServiceRateLimiter:
+        baseConfig: default
+        limitForPeriod: 5
+        limitRefreshPeriod: 1s
+        timeoutDuration: 5s
+        registerHealthIndicator: true
+
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+    ratelimiter:
+      enabled: true
+    health:
+      show-details: always
+logging:
+  level:
+    io.github.resilience4j: DEBUG
+
+springdoc:
+  api-docs:
+    enabled: true
