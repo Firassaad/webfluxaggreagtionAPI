@@ -7,4 +7,6 @@ import reactor.core.publisher.Mono;
 
 public interface ShipmentsService {
     Mono<Map<String, Object>> getShipmentsData(Set<Integer> shipments);
+
+    void processBulkRequest(Set<String> bulkRequest);
 }
