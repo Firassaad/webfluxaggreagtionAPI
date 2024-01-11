@@ -32,27 +32,6 @@ public class AggregationServiceImpl implements AggregationService {
         this.shipmentsService = shipmentsService;
     }
 
-    // @Override
-    // // @RateLimiter(name = "pricing") // Apply rate limiter
-    // public Mono<Map<String, Object>> getPricingData(Set<String> countries) {
-    //     return pricingService.getPricingData(countries);
-    // }
-
-    // @Override
-    // // @RateLimiter(name = "track") // Apply rate limiter
-    // public Mono<Map<String, Object>> getTrackData(Set<Integer> track) {
-    //     return trackService.getTrackData(track);
-    // }
-
-    // @Override
-    // // @RateLimiter(name = "shipments") // Apply rate limiter
-    // public Mono<Map<String, Object>> getShipmentsData(Set<Integer> shipments) {
-    //     return shipmentsService.getShipmentsData(shipments);
-    // }
-
-
-
-
     @Override
     public Mono<Map<String, Object>> aggregateData(Set<String> pricing, Set<Integer> track ,Set<Integer> shipments ) {
         // Implement your aggregation logic here
@@ -82,21 +61,21 @@ public class AggregationServiceImpl implements AggregationService {
 
 
         // Utility method to forward a bulk request to the respective API
-        private void forwardBulkRequestToAPI(String apiName, Set<String> bulkRequest) {
-          switch (apiName) {
-              case "pricing":
-                  pricingService.processBulkRequest(bulkRequest);
-                  break;
-              case "shipments":
-                  shipmentsService.processBulkRequest(bulkRequest);
-                  break;
-              case "track":
-                  trackService.processBulkRequest(bulkRequest);
-                  break;
-              // Add cases for other APIs if needed
-              default:
-                  throw new IllegalArgumentException("Unsupported API: " + apiName);
-          }
-        }
+        // private void forwardBulkRequestToAPI(String apiName, Set<String> bulkRequest) {
+        //   switch (apiName) {
+        //       case "pricing":
+        //           pricingService.processBulkRequest(bulkRequest);
+        //           break;
+        //       case "shipments":
+        //           shipmentsService.processBulkRequest(bulkRequest);
+        //           break;
+        //       case "track":
+        //           trackService.processBulkRequest(bulkRequest);
+        //           break;
+        //       // Add cases for other APIs if needed
+        //       default:
+        //           throw new IllegalArgumentException("Unsupported API: " + apiName);
+        //   }
+        // }
 
 }

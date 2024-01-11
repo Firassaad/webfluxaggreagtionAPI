@@ -26,7 +26,7 @@ import reactor.util.retry.Retry;
 
 @Service
 public class ShipmentsServiceImpl implements ShipmentsService {
-  int currentRequests =0;
+  int currentRequests = 0;
   private static final Logger logger = LoggerFactory.getLogger(ShipmentsServiceImpl.class);
 
   private static final int CAP = 5;
@@ -43,15 +43,13 @@ public class ShipmentsServiceImpl implements ShipmentsService {
   @Override
   @RateLimiter(name = "shipmentsServiceRateLimiter", fallbackMethod = "fallbackGetShipmentsData")
   public Mono<Map<String, Object>> getShipmentsData(Set<Integer> shipments) {
-    logger.info("Entering getShipmentsData");
+    // logger.info("Entering getShipmentsData");
+    ServiceUtils.addToQueue(new AtomicInteger(0), shipments, shipmentsQueue, CAP, "Shipement servie",
+        BASE_URL + "/shipments?q={shipments}");
+    currentRequests = requestCounter.incrementAndGet();
+    // logger.info("Number of requests handled: {}", currentRequests);
 
-
-    ServiceUtils.addToQueue(new AtomicInteger(0), shipments, shipmentsQueue,CAP, "Shipement servie", BASE_URL+"/shipments?q={shipments}");
-    // addToQueue(shipmentsQueue, shipments);
-     currentRequests = requestCounter.incrementAndGet();
-    logger.info("Number of requests handled: {}", currentRequests);
-
-    Retry retrySpec = ServiceUtils.createRetrySpec();
+    Retry retrySpec = ServiceUtils.createRetrySpec("Shipments");
     return webClient.get()
         .uri("/shipments?q={shipments}", shipments.stream().map(Object::toString).collect(Collectors.joining(",")))
         .retrieve()
@@ -64,60 +62,10 @@ public class ShipmentsServiceImpl implements ShipmentsService {
         });
   }
 
-
-
   public Mono<Map<String, Object>> fallbackGetShipmentsData(Set<Integer> shipments, Throwable throwable) {
-    logger.error("Fallback for shipments", throwable);
+    logger.error("------------------------------------------------------------------------------Fallback for shipments");
     return Mono.just(Collections.singletonMap("message", "Fallback method executed"));
   }
-
-  // private void addToQueue(Queue<Set<Integer>> queue, Set<Integer> data) {
-  //   queue.add(data);
-  //   if (queue.size() >= 5) {
-  //     logger.error("cap reached  | queue size is =" + queue.size());
-  //     forwardBulkRequestIfCapReached(queue);
-  //   }
-  // }
-
-  // private void forwardBulkRequestIfCapReached(Queue<Set<Integer>> queue) {
-  //   Set<Integer> bulkRequest = new HashSet<>();
-  //   for (int i = 0; i < 5; i++) {
-  //     Set<Integer> request = queue.poll();
-  //     if (request != null) {
-  //       bulkRequest.addAll(request);
-  //     }
-  //   }
-
-  //   forwardBulkRequestToAPI(bulkRequest);
-  // }
-
-  // // Utility method to forward a bulk request to the API
-
-  // private void forwardBulkRequestToAPI(Set<Integer> bulkRequest) {
-
-  //   logger.info("----------------------------------bulkRequestToAPI-------------");
-  //   webClient.get()
-  //       .uri("/shipments?q={shipments}", bulkRequest.stream().map(Object::toString).collect(Collectors.joining(",")))
-  //       .retrieve()
-  //       .bodyToFlux(new ParameterizedTypeReference<Map<String, Object>>() {
-  //       })
-  //       .collectList() // Collect the responses into a list
-  //       .flatMap(apiResponses -> {
-  //         // Handle the API responses asynchronously
-  //         logger.info("Handling the API responses asynchronously");
-  //         // Iterate through each response and log the data
-  //         for (Map<String, Object> response : apiResponses) {
-  //           logger.info("Received API response: {}", response);
-  //           // You can process or display the data as needed
-  //         }
-  //         // TODO: Implement logic to wait for responses from all queried API endpoints
-  //         // Example: waitUntilAllResponsesReceived(apiResponses);
-  //         // TODO: Respond to the original service request once all responses are received
-  //         // Example: respondToOriginalRequest(apiResponses);
-  //         return Mono.empty();
-  //       })
-  //       .subscribe(); // Subscribe to initiate the request
-  // }
 
   @Override
   public void processBulkRequest(Set<String> bulkRequest) {
