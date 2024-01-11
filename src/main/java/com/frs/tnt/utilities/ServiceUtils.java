@@ -37,7 +37,7 @@ import java.util.stream.Collectors;
 
 public class ServiceUtils {
 
-  private static final Logger logger = LoggerFactory.getLogger(ServiceUtils.class);
+  public static Logger logger = LoggerFactory.getLogger(ServiceUtils.class);
 
   /**
    * Creates a Retry specification for handling 503 errors.
@@ -46,7 +46,7 @@ public class ServiceUtils {
    * @return Retry specification.
    */
 
-  public static Retry createRetrySpec(String serviceName) {
+  public static  Retry createRetrySpec(String serviceName) {
     return Retry.backoff(3, Duration.ofSeconds(1))
         .filter(error -> is503Error(serviceName, error))
         .onRetryExhaustedThrow((retryBackoff, retrySignal) -> new Exception("Retry exhausted"));
@@ -85,37 +85,6 @@ public class ServiceUtils {
    * @param bulkRequest The set of requests to be forwarded.
    * @param endpoint    The endpoint of the external API.
    */
-  // public static <T> void forwardBulkRequestToAPI(WebClient webClient, Set<T> bulkRequest, String endpoint) {
-
-  //   logger.info("Forwarding bulk request for endpoint: {}", endpoint);
-
-  //   long startTime = System.currentTimeMillis();
-  //   webClient.get()
-  //       .uri(endpoint, bulkRequest.stream().map(Object::toString).collect(Collectors.joining(",")))
-  //       .retrieve()
-  //       .bodyToFlux(new ParameterizedTypeReference<Map<String, Object>>() {
-  //       })
-  //       .doOnNext(response -> logger.info("Received API response: {}", response))
-  //       .collectList()
-  //       .flatMap(apiResponses -> {
-  //         long elapsedTime = System.currentTimeMillis() - startTime;
-
-  //         logger.info("Handling the API responses asynchronously | time elapsed {}", elapsedTime);
-
-  //         // Call schedulePeriodicServiceCalls after handling responses
-  //         // schedulePeriodicServiceCalls(elapsedTime, bulkRequest, endpoint, webClient);
-
-  //         return Mono.empty();
-  //       })
-  //       .onErrorResume(throwable -> {
-  //         logger.error("===================================== Error in API request for endpoint: {}", endpoint);
-  //         // Handle the error or return a fallback response
-  //         return Mono.empty();
-  //       })
-  //       // .retry(3)
-  //       .subscribe();
-  // }
-
   public static <T> void forwardBulkRequestToAPI(WebClient webClient, Set<T> bulkRequest, String endpoint) {
 
     logger.info("Forwarding bulk request for endpoint: {}", endpoint);
@@ -124,86 +93,55 @@ public class ServiceUtils {
 
     // Execute the API request
     Flux<Map<String, Object>> apiResponseFlux = webClient.get()
-            .uri(endpoint, bulkRequest.stream().map(Object::toString).collect(Collectors.joining(",")))
-            .retrieve()
-            .bodyToFlux(new ParameterizedTypeReference<Map<String, Object>>() {
-            });
+        .uri(endpoint, bulkRequest.stream().map(Object::toString).collect(Collectors.joining(",")))
+        .retrieve()
+        .bodyToFlux(new ParameterizedTypeReference<Map<String, Object>>() {
+        });
 
     // Schedule periodic calls using Flux.interval
-    Flux.interval(Duration.ofSeconds(5))  // Schedule every 5 seconds
-            .takeUntilOther(apiResponseFlux) // Stop if API response is received
-            .flatMap(ignore -> {
-                long elapsedTime = System.currentTimeMillis() - startTime;
-                logger.info("Handling the API responses asynchronously | time elapsed {}", elapsedTime);
+    Flux.interval(Duration.ofSeconds(5)) // Schedule every 5 seconds
+        .takeUntilOther(apiResponseFlux) // Stop if API response is received
+        .flatMap(ignore -> {
+          long elapsedTime = System.currentTimeMillis() - startTime;
+          logger.info("Handling the API responses asynchronously | time elapsed {}", elapsedTime);
 
-                // Forward the bulk request
-                forwardBulkRequestToAPI(webClient, bulkRequest, endpoint);
+          // Forward the bulk request
+          forwardBulkRequestToAPI(webClient, bulkRequest, endpoint);
 
-                return Mono.empty();
-            })
-            .subscribe();
-}
-
-
-  private static <T> void schedulePeriodicServiceCalls(long elapsedTime, Set<T> bulkRequest, String endpoint,
-      WebClient webClient) {
-    // TODO: Implement logic to schedule periodic calls
-    // Example: If elapsedTime is less than 5000 milliseconds, schedule another call
-    // after the remaining time
-    long remainingTime = Math.max(0, 5000 - elapsedTime);
-
-    // Schedule a periodic call after the remaining time
-    Flux.interval(Duration.ofMillis(remainingTime))
-        .take(1) // Execute only once
-        .subscribe(ignore -> forwardBulkRequestToAPI(webClient, bulkRequest, endpoint));
+          return Mono.empty();
+        })
+        .subscribe();
   }
 
-  public static <T> void addToQueue(AtomicInteger requestCounter, Set<T> data,
-  Queue<Set<T>> queue, int cap,
-  String serviceName, String endpoint) {
-  queue.add(data);
-  int currentRequests = requestCounter.incrementAndGet();
-  logger.info("Number of requests handled for {}: {}", serviceName,
-  currentRequests);
+  // private static <T> void schedulePeriodicServiceCalls(long elapsedTime, Set<T> bulkRequest, String endpoint,
+  //     WebClient webClient) {
+  //   // TODO: Implement logic to schedule periodic calls
+  //   // Example: If elapsedTime is less than 5000 milliseconds, schedule another call
+  //   // after the remaining time
+  //   long remainingTime = Math.max(0, 5000 - elapsedTime);
 
-  if (queue.size() >= cap) {
-  logger.error("Cap reached for {} | Queue size is {}", serviceName,
-  queue.size());
-  forwardBulkRequestIfCapReached(queue, serviceName, endpoint);
-  }
-  }
-
-  // public static <T> void addToQueue(AtomicInteger requestCounter, Set<T> data, Queue<Set<T>> queue, int cap,
-  //     String serviceName, String endpoint) {
-  //   queue.add(data);
-
-  //   // Check if the queue size has reached the cap (5 in this example)
-  //   if (queue.size() >= 5) {
-  //     forwardBulkRequestIfCapReached(queue, serviceName, endpoint);
-  //   } else {
-  //     Mono.defer(() -> {
-  //       System.out.println("Entering Mono.defer block");
-  //       if (queue.size() >= 5) {
-  //         System.out.println("size is greater than 5");
-  //         return Mono.empty(); // Cap reached during the delay, do nothing
-  //       } else {
-  //         System.out.println("the else ===============================");
-  //         forwardBulkRequestIfCapReached(queue, serviceName, endpoint); // Forward the bulk request
-  //         return Mono.empty();
-  //       }
-  //     })
-  //         .delayElement(Duration.ofSeconds(5)) // Delay for 5 seconds
-  //         .timeout(Duration.ofSeconds(5)) // Timeout to reset the timer to zero if cap reached
-  //         .subscribe(success -> {
-  //           System.out.println("=============this is a SUCCESS========================");
-  //         }, error -> {
-  //           logger.error("Error in addToQueue: {}", error.getMessage());
-  //         });
-
-  //   }
+  //   // Schedule a periodic call after the remaining time
+  //   Flux.interval(Duration.ofMillis(remainingTime))
+  //       .take(1) // Execute only once
+  //       .subscribe(ignore -> forwardBulkRequestToAPI(webClient, bulkRequest, endpoint));
   // }
 
-  private static <T> void forwardBulkRequestIfCapReached(Queue<Set<T>> queue, String serviceName, String endpoint) {
+  public static <T> void addToQueue(AtomicInteger requestCounter, Set<T> data,
+      Queue<Set<T>> queue, int cap,
+      String serviceName, String endpoint) {
+    queue.add(data);
+    int currentRequests = requestCounter.incrementAndGet();
+    logger.info("Number of requests handled for {}: {}", serviceName,
+        currentRequests);
+
+    if (queue.size() >= cap) {
+      logger.error("Cap reached for {} | Queue size is {}", serviceName,
+          queue.size());
+      forwardBulkRequestIfCapReached(queue, serviceName, endpoint);
+    }
+  }
+
+  public static <T> void forwardBulkRequestIfCapReached(Queue<Set<T>> queue, String serviceName, String endpoint) {
     // Create a bulk request by combining the first 5 requests in the queue
     System.err.println("forwardBulkRequestIfCapReached" + endpoint);
     Set<T> bulkRequest = new HashSet<>();

@@ -1,8 +1,7 @@
 package com.frs.tnt.service;
 
-import java.time.Duration;
 import java.util.Collections;
-import java.util.HashSet;
+
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.Queue;
@@ -11,10 +10,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
-import org.springframework.web.reactive.function.client.WebClientResponseException;
 
 import com.frs.tnt.utilities.ServiceUtils;
 
