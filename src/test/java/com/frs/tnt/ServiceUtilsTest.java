@@ -1,23 +1,17 @@
 package com.frs.tnt;
 
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentMatchers;
-import org.mockito.Mockito;
+
 import org.slf4j.Logger;
-import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 import com.frs.tnt.utilities.ServiceUtils;
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Queue;
@@ -31,8 +25,6 @@ public class ServiceUtilsTest {
     // Mock the logger
     Logger logger = mock(Logger.class);
 
-    // Create a spy for ServiceUtils
-    ServiceUtils serviceUtilsSpy = spy(ServiceUtils.class);
     // Set the logger spy to the spy instance
     ServiceUtils.logger = logger;
 
@@ -41,47 +33,15 @@ public class ServiceUtilsTest {
         503, "Service Unavailable", null, null, null);
 
     // Test with a WebClientResponseException
-    assertTrue(serviceUtilsSpy.is503Error("testService", webClientException));
+    assertTrue(ServiceUtils.is503Error("testService", webClientException));
 
     // Test with a different exception
-    assertFalse(serviceUtilsSpy.is503Error("testService", new RuntimeException("Test error")));
+    assertFalse(ServiceUtils.is503Error("testService", new RuntimeException("Test error")));
 
     // Verify that the logger is called
     // Mockito.verify(logger).info("503 unavailable service {}, but retry in 1 sec
     // will make it available", "testService");
   }
-
-  // @Test
-  // void testForwardBulkRequestToAPI() {
-  //   // Mock WebClient
-  //   WebClient webClientMock = Mockito.mock(WebClient.class);
-
-  //   // Mock the behavior of the WebClient
-  //   Mockito.when(webClientMock.get()).thenReturn(Mockito.mock(WebClient.RequestHeadersUriSpec.class));
-
-
-  //   // Your bulk request data
-  //   Set<Object> bulkRequest = Collections.singleton("example");
-
-  //   // Call the method
-  //   ServiceUtils.forwardBulkRequestToAPI(webClientMock, bulkRequest, "testEndpoint");
-
-  //   // Verify that the WebClient interactions occurred
-  //   Mockito.verify(webClientMock, times(1)).get();
-  //   Mockito.verify(webClientMock, times(1))
-  //       .get()
-  //       .uri(anyString(), ArgumentMatchers.<Object>any());
-  //   Mockito.verify(webClientMock, times(1))
-  //       .get()
-  //       .uri(anyString(), ArgumentMatchers.<Object>any())
-  //       .retrieve();
-
-  //   Mockito.verify(webClientMock, times(1))
-  //       .get()
-  //       .uri(anyString(), ArgumentMatchers.<Object>any())
-  //       .retrieve()
-  //       .bodyToMono(ArgumentMatchers.<Class<?>>any());
-  // }
 
 
 

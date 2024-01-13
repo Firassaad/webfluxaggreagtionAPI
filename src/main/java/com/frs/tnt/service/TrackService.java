@@ -8,7 +8,7 @@ import reactor.core.publisher.Mono;
 public interface TrackService {
  Mono<Map<String, Object>> getTrackData(Set<Integer> track);
 
-void processBulkRequest(Set<String> bulkRequest);
+
 
 
 }

@@ -10,6 +10,7 @@ import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -28,10 +29,8 @@ public class TrackServiceImpl implements TrackService {
 
   private final WebClient webClient;
   private static final int CAP = 5;
-
   private static final String BASE_URL = "http://localhost:8080";
   private final Queue<Set<Integer>> trackQueue = new LinkedList<>();
-
   public TrackServiceImpl(WebClient.Builder webClientBuilder) {
     this.webClient = webClientBuilder.baseUrl(BASE_URL).build();
   }
@@ -61,14 +60,8 @@ public class TrackServiceImpl implements TrackService {
   }
 
   public Mono<Map<String, Object>> fallbackGetTrackData(Set<Integer> track, Throwable throwable) {
-    logger.error("------------------------------------Fallback for Track");
+    logger.info("########################--Fallback for Track--#################################");
     return Mono.just(Collections.singletonMap("message", "Fallback method executed"));
-  }
-
-  @Override
-  public void processBulkRequest(Set<String> bulkRequest) {
-    // TODO Auto-generated method stub
-    throw new UnsupportedOperationException("Unimplemented method 'processBulkRequest'");
   }
 
 }

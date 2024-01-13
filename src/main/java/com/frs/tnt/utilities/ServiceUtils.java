@@ -115,7 +115,7 @@ public class ServiceUtils {
 
   // private static <T> void schedulePeriodicServiceCalls(long elapsedTime, Set<T> bulkRequest, String endpoint,
   //     WebClient webClient) {
-  //   // TODO: Implement logic to schedule periodic calls
+  //   // Implement logic to schedule periodic calls
   //   // Example: If elapsedTime is less than 5000 milliseconds, schedule another call
   //   // after the remaining time
   //   long remainingTime = Math.max(0, 5000 - elapsedTime);
@@ -129,6 +129,7 @@ public class ServiceUtils {
   public static <T> void addToQueue(AtomicInteger requestCounter, Set<T> data,
       Queue<Set<T>> queue, int cap,
       String serviceName, String endpoint) {
+        System.out.println("&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& url add queue "+endpoint);
     queue.add(data);
     int currentRequests = requestCounter.incrementAndGet();
     logger.info("Number of requests handled for {}: {}", serviceName,
