@@ -1,39 +1,46 @@
+# Server Configuration
 server:
+  address: localhost
   port: 8081
 
-management.endpoints.web.exposure.include: "*"
-management.endpoint.health.show-details: always
 
+myapp:
+  BASE_URL: http://localhost:8080
+
+# Logging Configuration
+logging:
+  level:
+    io.github.resilience4j: DEBUG
+
+
+# Resilience4j Rate Limiter Configuration
 resilience4j:
   ratelimiter:
     configs:
       default:
-        limitForPeriod: 1  # Set a low limit as the purpose is to queue requests
+        limitForPeriod: 5
         limitRefreshPeriod: 1s
         timeoutDuration: 1s
         registerHealthIndicator: true
         eventConsumerBufferSize: 100
     instances:
       shipmentsServiceRateLimiter:
-        # baseConfig: default  # Use the default configuration for queueing
-        limitForPeriod: 5  # Set the actual limit for processing bulk requests
+        limitForPeriod: 5
         limitRefreshPeriod: 1s
-        timeoutDuration: 5s
+        timeoutDuration: 2s
         registerHealthIndicator: true
       pricingServiceRateLimiter:
-        baseConfig: default
         limitForPeriod: 5
         limitRefreshPeriod: 1s
-        timeoutDuration: 5s
+        timeoutDuration: 2s
         registerHealthIndicator: true
       trackServiceRateLimiter:
-        baseConfig: default
         limitForPeriod: 5
         limitRefreshPeriod: 1s
-        timeoutDuration: 5s
+        timeoutDuration: 2s
         registerHealthIndicator: true
 
-
+# Management Endpoints Configuration
 management:
   endpoints:
     web:
@@ -43,10 +50,3 @@ management:
       enabled: true
     health:
       show-details: always
-logging:
-  level:
-    io.github.resilience4j: DEBUG
-
-springdoc:
-  api-docs:
-    enabled: true
